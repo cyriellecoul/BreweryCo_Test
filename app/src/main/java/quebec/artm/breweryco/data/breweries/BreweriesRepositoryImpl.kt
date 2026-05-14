@@ -24,11 +24,11 @@ class BreweriesRepositoryImpl @Inject constructor(
         return Brewery(
             id = this.id!!,
             name = this.name!!,
-            address1 = this.address1!!,
+            address1 = this.address1?:"",
             type = BreweryType.fromId(this.breweryType!!),
-            latitude = this.latitude!!,
-            longitude = this.longitude!!,
-            phone = this.phone,
+            latitude = this.latitude?:0.0,
+            longitude = this.longitude?:0.0,
+            phone = this.phone?:"",
         )
     }
 }
