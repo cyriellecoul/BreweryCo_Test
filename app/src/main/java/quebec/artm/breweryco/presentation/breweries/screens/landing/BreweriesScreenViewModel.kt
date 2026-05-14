@@ -1,7 +1,5 @@
 package quebec.artm.breweryco.presentation.breweries.screens.landing
 
-import android.util.Log
-import androidx.compose.runtime.key
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -44,11 +42,19 @@ class BreweriesScreenViewModel @Inject constructor(
         _state.update {
             it.copy(
                 breweries = breweries.map { it.toUiModel() },
+                isLoading = false,
+                errorMessage = null
             )
         }
     }
 
     private fun onError(throwable: Throwable) {
+        _state.update {
+            it.copy(
+                isLoading = false,
+                errorMessage = throwable.message?: "We are not able to load breweries, try again later."
+            )
+        }
     }
 
 }
