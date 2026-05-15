@@ -4,62 +4,58 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import quebec.artm.breweryco.domain.breweries.BreweriesRepository
 import quebec.artm.breweryco.domain.breweries.model.Brewery
-import quebec.artm.breweryco.domain.breweries.usescases.GetAllBreweriesUseCase
 import quebec.artm.breweryco.presentation.breweries.screens.landing.models.BreweriesScreenViewModelState
 import quebec.artm.breweryco.presentation.breweries.screens.landing.models.BreweryUiData
 import javax.inject.Inject
 
 @HiltViewModel
 class BreweriesScreenViewModel @Inject constructor(
-    private val getAllBreweriesUseCase: GetAllBreweriesUseCase
+    private val repository: BreweriesRepository
 ) : ViewModel() {
+
     private val _state = MutableStateFlow(BreweriesScreenViewModelState())
     val state: StateFlow<BreweriesScreenViewModelState> = _state
-        .onStart { onCollectingStarted() }
-        .stateIn(
-            viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = BreweriesScreenViewModelState()
-        )
 
-    private fun onCollectingStarted() {
+    init {
+        loadBreweries()
+    }
+
+    private fun loadBreweries() {
         viewModelScope.launch {
-            getAllBreweriesUseCase.invoke().fold(
-                onSuccess = ::onBreweriesFetched,
-                onFailure = ::onError
+
+            _state.value = _state.value.copy(isLoading = true)
+
+            val result = repository.getBreweries()
+
+            result.fold(
+                onSuccess = { breweries ->
+                    onBreweriesFetched(breweries)
+                },
+                onFailure = { onError(it) }
             )
         }
     }
 
     private fun onBreweriesFetched(breweries: List<Brewery>) {
-        _state.update {
-            it.copy(
-                breweries = breweries.map { it.toUiModel() },
-                isLoading = false,
-                errorMessage = null
-            )
-        }
+        _state.value = _state.value.copy(
+            isLoading = false,
+            breweries = breweries.map { it.toUiModel() }
+        )
     }
 
-    private fun onError(throwable: Throwable) {
-        _state.update {
-            it.copy(
-                isLoading = false,
-                errorMessage = throwable.message?: "We are not able to load breweries, try again later."
-            )
-        }
+    private fun onError(error: Throwable) {
+        _state.value = _state.value.copy(
+            isLoading = false,
+            errorMessage = error.message
+        )
     }
 
+    private fun Brewery.toUiModel(): BreweryUiData = BreweryUiData(
+        key = id,
+        name = name
+    )
 }
-
-private fun Brewery.toUiModel(): BreweryUiData = BreweryUiData(
-    key = id,
-    name = name,
-)

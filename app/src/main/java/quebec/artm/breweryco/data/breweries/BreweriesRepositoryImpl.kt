@@ -8,27 +8,38 @@ import quebec.artm.breweryco.domain.breweries.model.BreweryType
 import javax.inject.Inject
 
 class BreweriesRepositoryImpl @Inject constructor(
-    private val remoteDataSource: RemoteBreweriesDataSource,
+    private val remote: RemoteBreweriesDataSource
 ) : BreweriesRepository {
-    override suspend fun getBreweries(): Result<List<Brewery>> = runCatching {
-        remoteDataSource.getBreweries(1, 100).mapNotNull {
-            try {
-                it.toDomain()
-            } catch (_: Exception) {
-                null
-            }
+
+    override suspend fun getBreweries(): Result<List<Brewery>> {
+        return try {
+            val data = remote.getBreweries(1, 20)
+            Result.success(data.map { it.toDomain() })
+        } catch (e: Exception) {
+            Result.failure(e)
         }
     }
 
-    private fun BreweryDto.toDomain(): Brewery {
-        return Brewery(
-            id = this.id!!,
-            name = this.name!!,
-            address1 = this.address1?:"",
-            type = BreweryType.fromId(this.breweryType!!),
-            latitude = this.latitude?:0.0,
-            longitude = this.longitude?:0.0,
-            phone = this.phone?:"",
-        )
+    override suspend fun getBreweryById(id: String): Result<Brewery> {
+        return try {
+            val data = remote.getBreweryById(id)
+            Result.success(data.toDomain())
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
+}
+
+private fun BreweryDto.toDomain(): Brewery {
+    return Brewery(
+        id = this.id!!,
+        name = this.name!!,
+        address1 = this.address1 ?: "",
+        type = BreweryType.fromId(this.breweryType!!),
+        latitude = this.latitude ?: 0.0,
+        longitude = this.longitude ?: 0.0,
+        phone = this.phone ?: "",
+        website_url = this.websiteUrl ?: "",
+        country = this.country!!,
+    )
 }

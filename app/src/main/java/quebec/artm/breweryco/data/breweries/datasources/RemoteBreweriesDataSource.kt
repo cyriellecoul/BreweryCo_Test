@@ -1,13 +1,14 @@
 package quebec.artm.breweryco.data.breweries.datasources
 
-import quebec.artm.breweryco.data.breweries.models.BreweryDto
-import retrofit2.http.GET
-import retrofit2.http.Query
+import javax.inject.Inject
 
-interface RemoteBreweriesDataSource {
-    @GET("breweries")
-    suspend fun getBreweries(
-        @Query("page") page: Int,
-        @Query("per_page") perPage: Int
-    ): List<BreweryDto>
+class RemoteBreweriesDataSource @Inject constructor(
+    private val api: BreweryApi
+) {
+
+    suspend fun getBreweries(page: Int, perPage: Int) =
+        api.getBreweries(page, perPage)
+
+    suspend fun getBreweryById(id: String) =
+        api.getBreweryById(id)
 }

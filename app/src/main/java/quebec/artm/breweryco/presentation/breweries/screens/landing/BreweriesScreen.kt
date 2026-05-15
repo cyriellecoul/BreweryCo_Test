@@ -18,15 +18,17 @@ import androidx.compose.ui.unit.dp
 import quebec.artm.breweryco.presentation.breweries.screens.landing.models.BreweryUiData
 import quebec.artm.breweryco.ui.theme.GreenLoading
 import quebec.artm.breweryco.ui.theme.RedErrors
+import androidx.compose.foundation.clickable
 
 @Composable
-fun BreweriesScreen(vm: BreweriesScreenViewModel) {
+fun BreweriesScreen(vm: BreweriesScreenViewModel, onItemClick: (String) -> Unit) {
     val state by vm.state.collectAsState()
     BreweriesRender(
         modifier = Modifier.fillMaxWidth(),
         breweries = state.breweries,
         isLoading = state.isLoading,
-        error = state.errorMessage
+        error = state.errorMessage,
+        onItemClick = onItemClick
     )
 }
 
@@ -35,7 +37,8 @@ private fun BreweriesRender(
     modifier: Modifier = Modifier,
     breweries: List<BreweryUiData>,
     isLoading: Boolean,
-    error: String?
+    error: String?,
+    onItemClick: (String) -> Unit
 ) {
 
     Box(modifier = modifier.fillMaxSize()) {
@@ -74,6 +77,9 @@ private fun BreweriesRender(
                         Text(
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .clickable {
+                                    onItemClick(brewery.key)
+                                }
                                 .padding(horizontal = 12.dp, vertical = 8.dp),
                             text = brewery.name
                         )

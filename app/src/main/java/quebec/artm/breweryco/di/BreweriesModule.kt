@@ -6,6 +6,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import quebec.artm.breweryco.data.breweries.BreweriesRepositoryImpl
+import quebec.artm.breweryco.data.breweries.datasources.BreweryApi
 import quebec.artm.breweryco.data.breweries.datasources.RemoteBreweriesDataSource
 import quebec.artm.breweryco.domain.breweries.BreweriesRepository
 import retrofit2.Retrofit
@@ -14,16 +15,28 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class BreweriesModule {
+
     @Binds
-    abstract fun BreweriesRepository(impl: BreweriesRepositoryImpl): BreweriesRepository
+    abstract fun bindBreweriesRepository(
+        impl: BreweriesRepositoryImpl
+    ): BreweriesRepository
 
     companion object {
-        @Singleton
+
         @Provides
-        fun provideRemoteDataSource(
+        @Singleton
+        fun provideBreweryApi(
             retrofit: Retrofit
+        ): BreweryApi {
+            return retrofit.create(BreweryApi::class.java)
+        }
+
+        @Provides
+        @Singleton
+        fun provideRemoteDataSource(
+            api: BreweryApi
         ): RemoteBreweriesDataSource {
-            return retrofit.create(RemoteBreweriesDataSource::class.java)
+            return RemoteBreweriesDataSource(api)
         }
     }
 }

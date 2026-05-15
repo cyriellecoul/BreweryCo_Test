@@ -2,7 +2,11 @@ package quebec.artm.breweryco.presentation.navigation
 
 import kotlinx.serialization.Serializable
 
-object Destinations {
+sealed interface Destinations {
+
     @Serializable
-    object Home
+    data object Home : Destinations
+
+    @Serializable
+    data class Details(val id: String) : Destinations
 }
